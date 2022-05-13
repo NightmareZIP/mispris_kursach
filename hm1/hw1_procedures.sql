@@ -63,7 +63,7 @@ $$;
 CREATE OR REPLACE FUNCTION alter_product_class(
     alt_id INT,
     alt_parent_id INT,
-    alt_name VARCHAR(30),
+    alt_name VARCHAR(60),
     alt_short_name VARCHAR(20),
     alt_measurement_id INT
 )
@@ -99,6 +99,22 @@ AS $$
     UPDATE product_class SET
            parent_id = new_parent_id
     WHERE id = ent_id RETURNING *;
+$$;
+
+create or replace FUNCTION product_class_find_children
+(
+	root_id INT
+)
+RETURNS TABLE (
+    id INT,
+    parent_id INT,
+    name VARCHAR(60),
+    short_name VARCHAR(30), 
+    measurement_id INT
+)
+LANGUAGE SQL
+AS $$
+    SELECT * FROM product_class WHERE parent_id = root_id;
 $$;
 
 --Экземпляр продукции
@@ -137,4 +153,3 @@ AS $$
                                    name = alt_name
     WHERE id = alt_id RETURNING *;
 $$;
-

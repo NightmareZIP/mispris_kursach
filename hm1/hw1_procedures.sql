@@ -91,7 +91,7 @@ CREATE OR REPLACE FUNCTION product_class_find_parent
 RETURNS product_class
 LANGUAGE SQL
 AS $$
-   SELECT parent_id FROM product_class WHERE id = ent_id;
+    SELECT * FROM  product_class WHERE id = (SELECT parent_id FROM product_class WHERE id = ent_id) ;
 $$;
 
 --установить родителя

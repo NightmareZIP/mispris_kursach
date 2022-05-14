@@ -1,4 +1,6 @@
 --Единицы измерения
+
+--добавить новый элемент 
 CREATE OR REPLACE FUNCTION insert_unit_of_measurement
 (
     name VARCHAR(30),
@@ -10,6 +12,7 @@ AS $$
     VALUES (name, short_name) RETURNING *;
 $$;
 
+--удалить элемент
 CREATE OR REPLACE FUNCTION delete_unit_of_measurement
 (
    delete_id INT
@@ -20,7 +23,7 @@ AS $$
    DELETE FROM unit_of_measurement WHERE id = delete_id RETURNING *;
 $$;
 
-
+--изменить элемент
 CREATE OR REPLACE FUNCTION alter_unit_of_measurement
 (
     alt_id INT,
@@ -36,6 +39,7 @@ AS $$
 $$;
 
 --Класс продукции
+--добавить элемент
 CREATE OR REPLACE FUNCTION insert_product_class(
     parent_id INT,
     name VARCHAR(30),
@@ -49,6 +53,7 @@ AS $$
     VALUES (parent_id, name, short_name, measurement_id) RETURNING *;
 $$;
 
+--удалить элемент
 CREATE OR REPLACE FUNCTION delete_product_class
 (
    delete_id INT
@@ -59,7 +64,7 @@ AS $$
    DELETE FROM product_class WHERE id = delete_id RETURNING *;
 $$;
 
-
+--изменить элемент
 CREATE OR REPLACE FUNCTION alter_product_class(
     alt_id INT,
     alt_parent_id INT,
@@ -78,6 +83,7 @@ AS $$
     WHERE id = alt_id RETURNING *;
 $$;
 
+--найти родителя
 CREATE OR REPLACE FUNCTION product_class_find_parent
 (
    ent_id INT
@@ -85,9 +91,10 @@ CREATE OR REPLACE FUNCTION product_class_find_parent
 RETURNS product_class
 LANGUAGE SQL
 AS $$
-   SELECT * FROM product_class WHERE id = ent_id;
+   SELECT parent_id FROM product_class WHERE id = ent_id;
 $$;
 
+--установить родителя
 CREATE OR REPLACE FUNCTION product_class_set_parent
 (
     ent_id INT,
@@ -101,6 +108,7 @@ AS $$
     WHERE id = ent_id RETURNING *;
 $$;
 
+--найти потомков первого уровня
 create or replace FUNCTION product_class_find_children
 (
 	root_id INT
@@ -118,6 +126,8 @@ AS $$
 $$;
 
 --Экземпляр продукции
+
+--добавить продукт
 CREATE OR REPLACE FUNCTION insert_product(
     class_id INT,
     name VARCHAR(250)
@@ -129,6 +139,7 @@ AS $$
     VALUES (class_id, name) RETURNING *;
 $$;
 
+--удалить продукт
 CREATE OR REPLACE FUNCTION delete_product
 (
    delete_id INT
@@ -140,6 +151,7 @@ AS $$
 $$;
 
 
+--изменить продукт
 CREATE OR REPLACE FUNCTION alter_product(
     alt_id INT,
     alt_class_id INT,

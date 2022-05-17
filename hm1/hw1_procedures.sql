@@ -59,9 +59,20 @@ CREATE OR REPLACE FUNCTION delete_product_class
    delete_id INT
 )
 RETURNS product_class
-LANGUAGE SQL
+LANGUAGE plpgsql
+
 AS $$
-   DELETE FROM product_class WHERE id = delete_id RETURNING *;
+    DECLARE
+    deleted product_class;
+    BEGIN
+
+    DELETE FROM product_class  WHERE id = delete_id RETURNING * INTO deleted;
+
+    UPDATE product_class SET
+                             parent_id = (SELECT parent_id FROM deleted)
+    FROM deleted
+    WHERE product_class.parent_id = (SELECT id FROM deleted);
+END
 $$;
 
 --изменить элемент
@@ -95,18 +106,18 @@ AS $$
 $$;
 
 --установить родителя
-CREATE OR REPLACE FUNCTION product_class_set_parent
-(
-    ent_id INT,
-    new_parent_id INT
-)
-RETURNS product_class
-LANGUAGE SQL
-AS $$
-    UPDATE product_class SET
-           parent_id = new_parent_id
-    WHERE id = ent_id RETURNING *;
-$$;
+-- CREATE OR REPLACE FUNCTION product_class_set_parent
+-- (
+--     ent_id INT,
+--     new_parent_id INT
+-- )
+-- RETURNS product_class
+-- LANGUAGE SQL
+-- AS $$
+--     UPDATE product_class SET
+--            parent_id = new_parent_id
+--     WHERE id = ent_id RETURNING *;
+-- $$;
 
 --найти потомков первого уровня
 create or replace FUNCTION product_class_find_children
@@ -164,4 +175,50 @@ AS $$
                                    class_id = alt_class_id,
                                    name = alt_name
     WHERE id = alt_id RETURNING *;
+$$;
+
+-- Функция проверки на цикл.
+CREATE OR REPLACE FUNCTION is_cycle(class_id INTEGER, new_parent INTEGER)
+    RETURNS BOOLEAN
+    LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    RETURN (SELECT EXISTS(WITH RECURSIVE descendants AS (
+        SELECT id, name, parent_id
+        FROM product_class
+        WHERE id = new_parent
+
+        UNION
+        SELECT P.id,
+               P.name,
+               P.parent_id
+        FROM product_class AS P
+                 INNER JOIN descendants D ON D.parent_id = P.id
+    )
+      SELECT *
+      FROM descendants
+      WHERE id = class_id));
+END
+$$;
+
+-- Смена родителя (вершины)
+-- child_id - идентификатор дочернего класса, родителя которого хотят поменять
+-- to_parent_id - идентификатор родителя, который будет родителем from_id
+-- При неуспешной смене бросается исключение
+CREATE OR REPLACE FUNCTION product_class_change_parent(class_id INTEGER, new_parent INTEGER)
+    RETURNS product_class
+    LANGUAGE plpgsql
+    AS
+$$
+DECLARE
+    HAS_CYCLE BOOLEAN DEFAULT FALSE;
+BEGIN
+    HAS_CYCLE := is_cycle(class_id, new_parent);
+    IF HAS_CYCLE THEN
+        RAISE EXCEPTION 'ЦИКЛ! Отмена операции';
+    ELSE
+        UPDATE product_class SET parent_id = new_parent WHERE id = class_id RETURNING *;
+    END IF;
+END;
 $$;

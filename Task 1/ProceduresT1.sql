@@ -50,6 +50,7 @@ AS $$
 $$;
 
 --Класс продукта
+--удаление класса продукта
 CREATE OR REPLACE FUNCTION delete_product_class
 (
    delete_id INT

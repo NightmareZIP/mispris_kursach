@@ -38,7 +38,7 @@ AS $$
     WHERE id = alt_id RETURNING *;
 $$;
 
---добавить элемент перечисление
+--добавить элемент перечисления
 CREATE OR REPLACE FUNCTION insert_enum_val
 (
     new_id_enum INTEGER,
@@ -109,6 +109,7 @@ AS $$
              INTO max_row;
     UPDATE enum_val SET position = max_row.position WHERE id = current_row.id;
     UPDATE enum_val SET position = current_row.position WHERE id = max_row.id;
+    return null;
     END
 $$;
 
@@ -135,5 +136,6 @@ $$
              INTO min_row;
     UPDATE enum_val SET position = min_row.position WHERE id = current_row.id;
     UPDATE enum_val SET position = current_row.position WHERE id = min_row.id;
+    return null;
     END
 $$;

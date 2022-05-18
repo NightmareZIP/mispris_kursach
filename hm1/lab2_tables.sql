@@ -13,7 +13,7 @@ CREATE TABLE enum_val (
     FOREIGN KEY (id_enum)
         REFERENCES enum(id)
         ON DELETE CASCADE, /*При удалении перечисления удаляем все элементы*/
-    val  INTEGER,    /*Численное значение*/
+    --val  INTEGER,    /*Численное значение*/ Будет свое для каждого свойства
     position INTEGER NOT NULL ,   /*Порядковый номер значения*/
     short_name  VARCHAR(15),        /*Обозначение значения*/
     name VARCHAR(150)       /*Имя значения*/

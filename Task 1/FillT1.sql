@@ -1,6 +1,9 @@
 SELECT * FROM insert_unit_of_measurement('Миллиметр', 'мм');
 SELECT * FROM insert_unit_of_measurement('Метр', 'м');
-SELECT * FROM insert_unit_of_measurement('Квадратный метр', 'м2');
+SELECT * FROM insert_unit_of_measurement('Квадратный сантиметр', 'см2');
+SELECT * FROM insert_unit_of_measurement('Кубический сантиметр', 'см3');
+SELECT * FROM insert_unit_of_measurement('См 4', 'см4');
+SELECT * FROM insert_unit_of_measurement('Сантиметр', 'см');
 SELECT * FROM insert_unit_of_measurement('Килограмм', 'кг');
 SELECT * FROM insert_unit_of_measurement('Тонна', 'т');
 

@@ -8,9 +8,14 @@
 --  Проверка на наличие такого параметра в классе этого изделия
 --  Проверка на тип параметра (перечисление/числовой)
 --  Проверка на диапазон значения параметра
+DROP FUNCTION IF EXISTS add_val_paramr(integer,integer,double precision,character varying);
+DROP FUNCTION IF EXISTS add_enum_val_param(integer,integer,integer,character varying);
+DROP FUNCTION IF EXISTS copy_class_params(integer,integer);
+DROP FUNCTION IF EXISTS aregat_content(integer);
+
 CREATE OR REPLACE FUNCTION add_val_paramr(param_id INTEGER, id_product INTEGER, value DOUBLE PRECISION,
                                                 information VARCHAR(150))
-    RETURNS product_params
+    RETURNS void
     LANGUAGE plpgsql
 AS
 $$
@@ -34,7 +39,8 @@ BEGIN
             IF min_param_value <= value AND max_param_value >= value THEN
                 INSERT INTO product_params (id_param, id_prod, val, info)
                 VALUES (param_id, id_product ,value, information)
-                ON CONFLICT (param_id, id_product) DO UPDATE SET val = value, info = information RETURNING *;
+                ON CONFLICT (id_param, id_prod) DO UPDATE SET val = value, info = information;
+
             ELSE
                 RAISE EXCEPTION 'Значение параметра не входит в диапазон параметров класса';
             END IF;
@@ -60,7 +66,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION add_enum_val_param(param_id INTEGER, id_product INTEGER, val_id INTEGER,
                                                     information VARCHAR(150))
-    RETURNS product_params
+    RETURNS void
     LANGUAGE plpgsql
 AS
 $$
@@ -110,7 +116,7 @@ CREATE OR REPLACE FUNCTION product_params(prod_id INTEGER)
 AS
 $$
 BEGIN
-    RETURN QUERY (SELECT product.name, pc.name, pp.name, concat(pp.val, ev.name, ' ', um.short_name)
+    RETURN QUERY (SELECT product.name, pc.name, P.name, concat(pp.val, ev.name, ' ', um.short_name)
           FROM product
                   JOIN product_class pc ON pc.id = product.class_id
                   JOIN product_params pp ON product.id = pp.id_prod
@@ -126,7 +132,7 @@ $$;
 -- From_Class_Id - идентификатор класса, от которого необходимо скопировать параметры
 -- To_Class_Id - идентификатор класса, в который необходимо добавить параметры
 CREATE OR REPLACE FUNCTION copy_class_params(from_class_id INTEGER, to_class_id INTEGER)
-    RETURNS product_params
+    RETURNS void
     LANGUAGE plpgsql
 AS
 $$
@@ -138,8 +144,10 @@ BEGIN
         LOOP
             INSERT INTO product_class_param (id_param, id_product_class, max_val, min_val)
             VALUES (Par_Class_Row.id_param, to_class_id, Par_Class_Row.min_val, Par_Class_Row.max_val)
-            ON CONFLICT (id_param, id_product_class) DO UPDATE SET min_val = Par_Class_Row.min_val, max_val = Par_Class_Row.max_val
-            RETURNING *;
+            ON CONFLICT (id_param, id_product_class) DO UPDATE SET
+                                                                   min_val = Par_Class_Row.min_val,
+                                                                   max_val = Par_Class_Row.max_val;
+
         END LOOP;
 
 END;
@@ -149,16 +157,23 @@ $$;
 -- Просмотреть содержимое агрегата
 -- Arg_Id - идентификатор агрегата
 -- Возвращает аблицу со столбцами Позиция, Краткое Имя, Имя
-CREATE FUNCTION aregat_content(pos INTEGER)
-    RETURNS parameter
+CREATE OR REPLACE FUNCTION aregat_content(pos INTEGER)
+    RETURNS TABLE
+        (p_position int,
+        p_name varchar(100),
+        p_short_name varchar(45)
+        )
 
     LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    SELECT pos, name, short_name
+    RETURN QUERY
+        SELECT parameter.position, parameter.name, parameter.short_name
         FROM parameter
-        WHERE pos = position;
+        WHERE parameter.position = pos;
 END;
 $$
+
+
 

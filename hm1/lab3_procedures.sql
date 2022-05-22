@@ -1,3 +1,8 @@
+DROP FUNCTION IF EXISTS add_val_paramr(integer,integer,double precision,character varying);
+DROP FUNCTION IF EXISTS add_enum_val_param(integer,integer,integer,character varying);
+DROP FUNCTION IF EXISTS copy_class_params(integer,integer);
+DROP FUNCTION IF EXISTS aregat_content(integer);
+
 -- Добавить числовой параметр для изделия
 -- param_id - идентификатор параметра
 -- id_product - идентификатор изделия
@@ -8,10 +13,6 @@
 --  Проверка на наличие такого параметра в классе этого изделия
 --  Проверка на тип параметра (перечисление/числовой)
 --  Проверка на диапазон значения параметра
-DROP FUNCTION IF EXISTS add_val_paramr(integer,integer,double precision,character varying);
-DROP FUNCTION IF EXISTS add_enum_val_param(integer,integer,integer,character varying);
-DROP FUNCTION IF EXISTS copy_class_params(integer,integer);
-DROP FUNCTION IF EXISTS aregat_content(integer);
 
 CREATE OR REPLACE FUNCTION add_val_paramr(param_id INTEGER, id_product INTEGER, value DOUBLE PRECISION,
                                                 information VARCHAR(150))

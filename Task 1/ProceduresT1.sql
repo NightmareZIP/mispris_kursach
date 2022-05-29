@@ -108,8 +108,8 @@ CREATE OR REPLACE FUNCTION alter_product_class(
 RETURNS product_class
 LANGUAGE SQL
 AS $$
+    SELECT *  FROM product_class_change_parent(alt_id, alt_parent_id);
     UPDATE product_class SET
-                                   parent_id = alt_parent_id,
                                    name = alt_name,
                                    short_name = alt_short_name,
                                    measurement_id = alt_measurement_id

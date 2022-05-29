@@ -32,7 +32,7 @@ class Text_window(ttk.Frame):
 
         columns, res = self.DB.execute(formated_command, True)
         if columns == -1:
-            messagebox.showinfo("Ошибка", "Проверьте данные")
+            messagebox.showinfo("Ошибка", "Проверьте данные\n"+str(res))
             self.text_w = False
             return
         if len(columns) == 0:
@@ -252,9 +252,7 @@ class Main_application(ttk.Frame):
                 },
                 'Добавить единицу измерения': {
                     'command':
-                    """INSERT INTO unit_of_measurement (name, short_name)
-                        VALUES
-                        ({}, {});""",
+                    """SELECT * FROM insert_unit_of_measurement({}, {});""",
                     'is_input': {
                         'insert': {
                             'label':
@@ -271,9 +269,7 @@ class Main_application(ttk.Frame):
 
                 'Добавить класс продукта': {
                     'command':  """
-                    INSERT INTO product_class (name, short_name, measurement_id, parent_id)
-                    VALUES
-                    ({}, {}, {}, {});""",
+                    SELECT * FROM insert_product_class(name =>{}, short_name=>{}, measurement_id=>{}, parent_id=>{});""",
 
                     'is_input': {
                         'insert': {
@@ -294,9 +290,7 @@ class Main_application(ttk.Frame):
                 },
                 'Добавить продукт': {
                     'command':  """
-                        INSERT INTO product (name, class_id)
-                        VALUES
-                        ({}, {});""",
+                        SELECT * FROM insert_product(name=>{}, class_id=>{})""",
                         'is_input': {
                             'insert': {
                                 'label':
@@ -312,10 +306,8 @@ class Main_application(ttk.Frame):
                 },
                 'Изменить единицу измерения': {
                     'command':  """
-                        UPDATE unit_of_measurement SET
-                                   name = {},
-                                   short_name = {}
-                                WHERE id = {};
+                        SELECT * FROM alter_unit_of_measurement(alt_name=>{}, alt_short_name =>{}, alt_id=>{});
+                       
                         """,
                     'is_input': {
                         'insert': {
@@ -355,7 +347,7 @@ class Main_application(ttk.Frame):
                                  ['id, short_name']),
                                 ('product_class', 'Выберите новый родительский класс',
                                  ['id, name']),
-                                 ],
+                            ],
 
                         }
                     }
@@ -382,15 +374,14 @@ class Main_application(ttk.Frame):
                                     ['id, name']),
                                 ('product_class', 'Класс продукта',
                                  ['id, short_name']),
-                                 ],
+                            ],
 
                         }
                     }
                 },
                 'Удалить единицу измерения': {
                     'command':  """
-                        DELETE FROM unit_of_measurement 
-                                WHERE id = {};
+                        SELECT * FROM delete_unit_of_measurement({});
                         """,
                     'is_input': {
                         'insert': {
@@ -426,8 +417,8 @@ class Main_application(ttk.Frame):
 
                 'Удалить продукт': {
                     'command':  """
-                        DELETE FROM product 
-                                WHERE id = {};
+                        SELECT * FROM delete_product({});
+;
                         """,
                     'is_input': {
                         'insert': {

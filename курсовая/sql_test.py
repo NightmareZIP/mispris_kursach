@@ -46,7 +46,7 @@ class DB:
             if check:
                 self.mydb.rollback()
 
-            return -1, 'ERROR'
+            return -1, e
         else:
             self.mydb.close()
             if not check:

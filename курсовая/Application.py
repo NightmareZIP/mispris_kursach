@@ -191,7 +191,7 @@ class Main_application(ttk.Frame):
             'host': "127.0.0.1",
             'user': login,
             'password': password,
-            'database': "mispris"
+            'database': "misp2"
         }
         return sql_test.DB(data)
 
@@ -204,63 +204,66 @@ class Main_application(ttk.Frame):
             # Важен порядок в запросе сначала указываем обычные поля, после чекбоксы
             queries = {
                 "Список классов продуктов": {
-                    'command': """SELECT product_class.*, unit_of_measurement.short_name AS um FROM product_class
+                    'command': """SELECT class_izdeliy.*, EI.short_name_EI AS um FROM class_izdeliy
                     
-                                    LEFT JOIN unit_of_measurement ON 
-                                    unit_of_measurement.id = product_class.measurement_id;""",
+                                    LEFT JOIN EI ON 
+                                    EI.ID_EI = class_izdeliy.EI_ID;""",
                     'is_input': False
                 },
                 "Список продуктов": {
                     'command':
-                    """SELECT product.*, product_class.name as p_c_name  FROM product
-                                    LEFT JOIN product_class ON
-                                    product_class.id = product.class_id;""",
+                    """SELECT product.*, class_izdeliy.name as p_c_name  FROM product
+                                    LEFT JOIN class_izdeliy ON
+                                    class_izdeliy.ID_class = product.class_ID;""",
                     'is_input': False
                 },
                 "Список eдиниц измерения": {
-                    'command': "SELECT * FROM unit_of_measurement;",
+                    'command': "SELECT * FROM EI;",
                     'is_input': False
                 },
 
-                "Найти родителя": {
-                    'command': """SELECT * FROM product_class_find_parent({});""",
+
+
+                "Вывод спецификации": {
+                    'command': """SELECT * FROM showspec({});""",
                     'is_input':  {
                         'insert': {
                             'label':
-                            'Введите данные е.и',
+                            'Введите данные продукта',
                             'entity':
                                 ['unit_of_measurement'],
                             'fields': [],
-                            'checkboxes': [('product_class', 'Выберите класс',
-                                            ['id, name'])],
+                            'checkboxes': [('product', 'Выберите продукт',
+                                            ['ID_prod, name_proD'])],
                         }
                     }
                 },
-                "Найти потомка": {
-                    'command': """SELECT * FROM product_class_find_children({})""",
+                "Найти количество необходимых элементов": {
+                    'command': """SELECT * FROM countClassAmount(amount=>{}, id_prod=>{})""",
                     'is_input':  {
                         'insert': {
                             'label':
-                            'Введите данные е.и',
+                            'Введите данные продукта и количества',
                             'entity':
                                 ['unit_of_measurement'],
-                            'fields': [],
-                            'checkboxes': [('product_class', 'Выберите класс',
-                                            ['id, name'])],
+                            'fields': [['amount', 'количество']],
+                            'checkboxes': [('product', 'Выберите продукт',
+                                            ['ID_prod, name_proD'])],
                         }
                     }
                 },
                 'Добавить единицу измерения': {
                     'command':
-                    """SELECT * FROM insert_unit_of_measurement({}, {});""",
+                    """SELECT * FROM add_ei({}, {});""",
                     'is_input': {
                         'insert': {
                             'label':
                             'Введите данные е.и',
                             'entity':
-                                ['unit_of_measurement'],
-                            'fields': [['name', 'название'],
-                                       ['short_name', 'название кратко'],
+                                ['EI'],
+                            'fields': [['short_name_EI', 'название кратко'],
+                                       ['name_EI', 'название'],
+
                                        ],
                             'checkboxes': [],
                         }
@@ -269,169 +272,41 @@ class Main_application(ttk.Frame):
 
                 'Добавить класс продукта': {
                     'command':  """
-                    SELECT * FROM insert_product_class(name =>{}, short_name=>{}, measurement_id=>{}, parent_id=>{});""",
+                    SELECT * FROM add_class(full_name =>{}, class_short_name=>{}, ei=>{}, parent=>{});""",
 
                     'is_input': {
                         'insert': {
                             'label':
-                            'Выберите единицу измерения',
-                            'entity': ['product_class'],
-                            'fields': [['name', 'название'],
-                                       ['short_name', 'название кратко'],
+                            'Выберите класс продукта',
+                            'entity': ['class_izdeliy'],
+                            'fields': [['full_name', 'название'],
+                                       ['class_short_name', 'название кратко'],
                                        ],
                             'checkboxes': [
-                                ('unit_of_measurement',
-                                 'Единица измерения', ['id', 'short_name']),
-                                ('product_class', 'Выберите родительский класс',
-                                    ['id, name'])
+                                ('EI',
+                                 'Единица измерения', ['ID_EI', 'short_name_EI']),
+                                ('class_izdeliy', 'Выберите родительский класс',
+                                    ['ID_class, name'])
                             ],
                         }
                     }
                 },
                 'Добавить продукт': {
                     'command':  """
-                        SELECT * FROM insert_product(name=>{}, class_id=>{})""",
+                        SELECT * FROM add_prod(full_prod_name=>{},short_prod_name=>{}, id_class=>{})""",
                         'is_input': {
                             'insert': {
                                 'label':
-                                'Выберите класс продукта',
+                                'Выберите продукт',
                                 'entity': ['product'],
-                                'fields': [['name', 'название'],
+                                'fields': [['name_proD', 'название'],
+                                           ['short_name_proD', 'название кратко']
                                            ],
                                 'checkboxes':
-                                [('product_class', 'Класс продукта',
-                                 ['id, short_name'])],
+                                [('class_izdeliy', 'Класс продукта',
+                                 ['ID_class, short_name'])],
                             }
                         }
-                },
-                'Изменить единицу измерения': {
-                    'command':  """
-                        SELECT * FROM alter_unit_of_measurement(alt_name=>{}, alt_short_name =>{}, alt_id=>{});
-                       
-                        """,
-                    'is_input': {
-                        'insert': {
-                            'label':
-                            'Выберите единицу измерения и задайте ее новые параметры',
-                            'entity': ['unit_of_measurement'],
-                            'fields': [['name', 'название'],
-                                       ['short_name', 'крпткое название']],
-                            'checkboxes':
-                            [('unit_of_measurement', 'Единицы зимерения',
-                                ['id, name'])],
-
-                        }
-                    }
-                },
-                'Изменить класс продукта': {
-                    'command':  """
-                       SELECT * FROM alter_product_class(
-                           alt_name =>{}, 
-                           alt_short_name=>{},
-                           alt_id=>{},
-                           alt_measurement_id=>{},
-                           alt_parent_id=>{});
-                        """,
-                    'is_input': {
-                        'insert': {
-                            'label':
-                            'Выберите класс продукта и задайте новые параметры',
-                            'entity': ['product_class'],
-                            'fields': [['name', 'название'],
-                                       ['short_name', 'краткое название']],
-                            'checkboxes':
-                            [
-                                ('product_class', 'Выбор класса для изменения',
-                                 ['id, name']),
-                                ('unit_of_measurement', 'Единица измерения',
-                                 ['id, short_name']),
-                                ('product_class', 'Выберите новый родительский класс',
-                                 ['id, name']),
-                            ],
-
-                        }
-                    }
-                },
-
-                'Изменить  товар': {
-                    'command':  """
-                        SELECT * FROM alter_product(
-                            alt_name => {},
-                            alt_id => {},
-                            alt_class_id => {}
-                        );
-                        """,
-                    'is_input': {
-                        'insert': {
-                            'label':
-                            'Выберите продукт',
-                            'entity': ['product'],
-                            'fields': [['name', 'название'],
-                                       ],
-                            'checkboxes':
-                            [
-                                ('product', 'Продукт который будет изменен',
-                                    ['id, name']),
-                                ('product_class', 'Класс продукта',
-                                 ['id, short_name']),
-                            ],
-
-                        }
-                    }
-                },
-                'Удалить единицу измерения': {
-                    'command':  """
-                        SELECT * FROM delete_unit_of_measurement({});
-                        """,
-                    'is_input': {
-                        'insert': {
-                            'label':
-                            'Выберите единицу измерения',
-                            'entity': ['unit_of_measurement'],
-                            'fields': [],
-                            'checkboxes':
-                            [('unit_of_measurement', 'Класс продукта',
-                                ['id, name'])],
-
-                        }
-                    }
-                },
-
-                'Удалить класс продукта': {
-                    'command':  """
-                         SELECT * FROM delete_product_class({});
-                        """,
-                    'is_input': {
-                        'insert': {
-                            'label':
-                            'Выберите класс товара',
-                            'entity': ['product_class'],
-                            'fields': [],
-                            'checkboxes':
-                            [('product_class', 'Классы товара',
-                                ['id, name'])],
-
-                        }
-                    }
-                },
-
-                'Удалить продукт': {
-                    'command':  """
-                        SELECT * FROM delete_product({});
-;
-                        """,
-                    'is_input': {
-                        'insert': {
-                            'label':
-                            'Выберите  товар',
-                            'entity': ['product'],
-                            'fields': [],
-                            'checkboxes':
-                            [('product', 'Товары',
-                                ['id, name'])],
-
-                        }
-                    }
                 },
             }
 
@@ -442,7 +317,7 @@ class Main_application(ttk.Frame):
 
 
 root = Tk()
-root.title("Сталь")
+root.title("Кровати")
 
 root.minsize(800, 400)
 app = Main_application(root)
